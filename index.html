@@ -96,26 +96,15 @@
     font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em;
     text-transform: uppercase; color: var(--dim); margin-bottom: 12px;
   }
-  form.notify { display: flex; gap: 0; flex-wrap: wrap; border: 1px solid var(--line); }
-  form.notify input[type="email"] {
-    flex: 1 1 220px; min-width: 0;
-    background: var(--panel); border: none; color: var(--fg);
-    font-family: var(--sans); font-size: 15px; padding: 16px 18px;
-    outline: none;
+  .signup .cta {
+    display: inline-block; text-decoration: none;
+    font-family: var(--mono); font-size: 14px; letter-spacing: 0.16em;
+    text-transform: uppercase; padding: 18px 34px; cursor: pointer;
+    background: var(--accent); color: #0a0a0a; border: 1px solid var(--accent);
+    font-weight: 700; transition: all .15s;
   }
-  form.notify input[type="email"]::placeholder { color: #5f6770; }
-  form.notify button {
-    font-family: var(--mono); font-size: 12px; letter-spacing: 0.16em;
-    text-transform: uppercase; padding: 16px 24px; cursor: pointer;
-    background: var(--accent); color: #0a0a0a; border: none;
-    transition: all .15s; flex: 0 0 auto;
-  }
-  form.notify button:hover { background: var(--accent-2); }
-  form.notify button:disabled { opacity: .6; cursor: default; }
-  .signup .fine { margin-top: 12px; font-size: 12px; color: var(--dim); }
-  .signup .msg { margin-top: 14px; font-family: var(--mono); font-size: 13px; min-height: 18px; }
-  .signup .msg.ok { color: var(--accent-2); }
-  .signup .msg.err { color: #ff4d4d; }
+  .signup .cta:hover { background: var(--accent-2); border-color: var(--accent-2); }
+  .signup .fine { margin-top: 14px; font-size: 12px; color: var(--dim); }
 
   /* ---- footer ---- */
   footer {
@@ -128,7 +117,7 @@
   footer a:hover { color: var(--accent); }
 
   @media (max-width: 560px) {
-    form.notify button { flex: 1 1 100%; }
+    .signup .cta { display: block; text-align: center; }
   }
 
   /* ---- opening animation (terminal boot) ---- */
@@ -223,15 +212,9 @@
     <p class="soon"><b>COMING SOON.</b> The deck is being built.</p>
 
     <div class="signup">
-      <div class="k">Get notified at launch</div>
-      <!-- Formspree: replace YOUR_FORM_ID with your real endpoint ID (see SETUP.md) -->
-      <form class="notify" action="https://formspree.io/f/xvzjjayk" method="POST" id="notifyForm">
-        <input type="email" name="email" placeholder="you@email.com" required aria-label="Email address" />
-        <input type="hidden" name="_subject" value="New Side Quest waitlist signup" />
-        <button type="submit">Notify Me</button>
-      </form>
-      <p class="fine">No spam. One email when we launch.</p>
-      <p class="msg" id="formMsg" role="status" aria-live="polite"></p>
+      <div class="k">Now in open beta</div>
+      <a class="cta" href="https://testflight.apple.com/join/EdUpgt6F" target="_blank" rel="noopener">Get BETA for iOS now!</a>
+      <p class="fine">Requires the free TestFlight app. iPhone only.</p>
     </div>
   </div>
 </main>
@@ -338,45 +321,6 @@
     });
     document.addEventListener('mouseout', function (e) {
       if (e.target.closest('a, button, input')) ring.classList.remove('lock');
-    });
-  })();
-
-  // Progressive enhancement: submit via fetch so the user stays on the page.
-  // Falls back to a normal POST if JS is disabled.
-  (function () {
-    var form = document.getElementById('notifyForm');
-    var msg = document.getElementById('formMsg');
-    if (!form) return;
-    form.addEventListener('submit', function (e) {
-      // If the endpoint hasn't been set up yet, let the user know instead of a broken POST.
-      if (form.action.indexOf('YOUR_FORM_ID') !== -1) {
-        e.preventDefault();
-        msg.textContent = 'Form not connected yet — see SETUP.md.';
-        msg.className = 'msg err';
-        return;
-      }
-      e.preventDefault();
-      var btn = form.querySelector('button');
-      var data = new FormData(form);
-      btn.disabled = true;
-      msg.textContent = 'Sending...';
-      msg.className = 'msg';
-      fetch(form.action, { method: 'POST', body: data, headers: { 'Accept': 'application/json' } })
-        .then(function (r) {
-          if (r.ok) {
-            form.reset();
-            msg.textContent = "You're on the list. We'll be in touch.";
-            msg.className = 'msg ok';
-          } else {
-            msg.textContent = 'Something went wrong. Try again.';
-            msg.className = 'msg err';
-          }
-        })
-        .catch(function () {
-          msg.textContent = 'Network error. Try again.';
-          msg.className = 'msg err';
-        })
-        .finally(function () { btn.disabled = false; });
     });
   })();
 </script>
