@@ -97,7 +97,7 @@
       <h1>You&rsquo;re in.</h1>
       <p class="sub">Your account is verified. Open Side Quest and today&rsquo;s dare is waiting.</p>
       <a class="btn" href="sidequest://" id="open">Open Side Quest</a>
-      <div class="hint">If nothing opens, switch back to the app manually and sign in.</div>
+      <div class="hint">You&rsquo;ll be signed in automatically. If nothing opens, switch back to the app manually.</div>
     </section>
 
     <!-- failure (expired / already used link) -->
@@ -142,10 +142,35 @@
       return;
     }
 
-    // Success: try to bounce straight into the app on mobile. The button stays
-    // put for anyone the auto-open does not work for (desktop, strict browsers).
+    // Success. Supabase puts the new session's tokens in the fragment, which
+    // never leaves the browser. Hand them to the app on the deep link so it can
+    // sign the user straight in instead of dumping them back on a login form.
+    //
+    // The tokens ride as a QUERY string on the app URL, not a fragment: the
+    // app reads them by splitting the URL, and a query survives the round trip
+    // through the OS more predictably than a fragment does.
+    //
+    // Path is the app's root on purpose. Builds that predate the handler open
+    // to their normal start screen and ignore the extra params, rather than
+    // hitting an unknown route.
+    var deepLink = 'sidequest://';
+    var at = h.get('access_token');
+    var rt = h.get('refresh_token');
+    if (at && rt) {
+      deepLink =
+        'sidequest://?' +
+        new URLSearchParams({
+          access_token: at,
+          refresh_token: rt,
+          type: h.get('type') || 'signup',
+        }).toString();
+    }
+    document.getElementById('open').setAttribute('href', deepLink);
+
+    // Bounce straight into the app on mobile. The button stays put for anyone
+    // the auto-open does not work for (desktop, strict browsers).
     if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-      setTimeout(function () { window.location.href = 'sidequest://'; }, 700);
+      setTimeout(function () { window.location.href = deepLink; }, 700);
     }
   })();
 </script>
