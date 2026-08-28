@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SIDE QUEST · Email Confirmed</title>
+<meta name="robots" content="noindex" />
+<meta name="description" content="Your Side Quest email is confirmed. Open the app and start your first quest." />
+<style>
+  :root {
+    --bg: #0b0d10;
+    --panel: #101317;
+    --fg: #f4f4f2;
+    --dim: #9aa3ad;
+    --line: #262b31;
+    --accent: #ff5b1a;
+    --accent-2: #2ee6a6;
+    --danger: #ff6b6b;
+    --mono: "SFMono-Regular", "JetBrains Mono", "Menlo", "Consolas", monospace;
+    --sans: -apple-system, "Helvetica Neue", "Arial", sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(255,91,26,0.12), transparent 60%),
+      radial-gradient(900px 500px at -10% 20%, rgba(46,230,166,0.07), transparent 55%),
+      var(--bg);
+    background-attachment: fixed;
+    color: var(--fg);
+    font-family: var(--sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+  }
+  ::selection { background: var(--accent); color: #0a0a0a; }
+  .wrap { width: 100%; max-width: 1100px; margin: 0 auto; padding: 0 28px; }
+
+  header.bar { border-bottom: 1px solid var(--line); backdrop-filter: blur(8px); }
+  header.bar .wrap { display: flex; align-items: center; height: 56px; }
+  .brand { font-family: var(--mono); font-size: 13px; letter-spacing: 0.2em; font-weight: 700; color: var(--fg); text-decoration: none; }
+  .brand b { background: var(--accent); color: #0a0a0a; padding: 2px 5px; }
+
+  main { flex: 1; display: flex; align-items: center; padding: 72px 0; }
+  .card {
+    max-width: 520px; margin: 0 auto; text-align: center;
+    background: var(--panel); border: 1px solid var(--line);
+    padding: 44px 32px 36px;
+  }
+  .stamp {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.28em;
+    text-transform: uppercase; color: var(--accent-2);
+    display: inline-flex; align-items: center; gap: 9px; margin-bottom: 22px;
+  }
+  .stamp i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-2); display: inline-block; }
+  .stamp.bad { color: var(--danger); }
+  .stamp.bad i { background: var(--danger); }
+
+  h1 { font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; font-size: 34px; margin-bottom: 14px; }
+  p.sub { color: var(--dim); font-size: 15px; margin-bottom: 30px; }
+
+  .btn {
+    display: inline-block; font-family: var(--mono); font-size: 12px;
+    letter-spacing: 0.2em; text-transform: uppercase; font-weight: 700;
+    background: var(--accent); color: #0a0a0a; text-decoration: none;
+    padding: 15px 30px; border: 1px solid var(--accent);
+  }
+  .btn:hover { background: #ff7038; border-color: #ff7038; }
+  .btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); }
+  .btn.ghost:hover { background: transparent; border-color: var(--dim); }
+
+  .hint {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--dim); margin-top: 22px; line-height: 1.9;
+  }
+  footer { border-top: 1px solid var(--line); padding: 22px 0; }
+  footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  footer a, footer span { font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--dim); text-decoration: none; }
+  footer a:hover { color: var(--fg); }
+  [hidden] { display: none !important; }
+  @media (max-width: 520px) { h1 { font-size: 27px; } .card { padding: 34px 22px 28px; } }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="wrap"><a class="brand" href="/">SIDE<b>QUEST</b></a></div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <!-- success -->
+    <section class="card" id="ok">
+      <div class="stamp"><i></i> Email confirmed</div>
+      <h1>You&rsquo;re in.</h1>
+      <p class="sub">Your account is verified. Open Side Quest and today&rsquo;s dare is waiting.</p>
+      <a class="btn" href="sidequest://" id="open">Open Side Quest</a>
+      <div class="hint">If nothing opens, switch back to the app manually and sign in.</div>
+    </section>
+
+    <!-- failure (expired / already used link) -->
+    <section class="card" id="bad" hidden>
+      <div class="stamp bad"><i></i> Link expired</div>
+      <h1>That link is no longer valid.</h1>
+      <p class="sub" id="badmsg">Confirmation links expire after a short while, and each one only works once. Open the app and request a new confirmation email.</p>
+      <a class="btn ghost" href="sidequest://">Open Side Quest</a>
+      <div class="hint">Still stuck? contact@sidequestcorp.com</div>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>&copy; TUSC Studio</span>
+    <a href="/privacy.html">Privacy</a>
+    <a href="/terms.html">Terms</a>
+    <a href="mailto:contact@sidequestcorp.com">Contact</a>
+  </div>
+</footer>
+
+<script>
+  // Supabase sends the outcome either as a query string or as a URL fragment,
+  // depending on the auth flow. Check both before deciding what to show.
+  (function () {
+    var q = new URLSearchParams(window.location.search);
+    var h = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
+    var err = q.get('error') || q.get('error_code') || h.get('error') || h.get('error_code');
+    var desc = q.get('error_description') || h.get('error_description');
+
+    if (err) {
+      document.getElementById('ok').hidden = true;
+      var bad = document.getElementById('bad');
+      bad.hidden = false;
+      if (desc) {
+        document.getElementById('badmsg').textContent =
+          decodeURIComponent(desc.replace(/\+/g, ' ')) +
+          ' Open the app and request a new confirmation email.';
+      }
+      return;
+    }
+
+    // Success: try to bounce straight into the app on mobile. The button stays
+    // put for anyone the auto-open does not work for (desktop, strict browsers).
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      setTimeout(function () { window.location.href = 'sidequest://'; }, 700);
+    }
+  })();
+</script>
+
+</body>
+</html>
