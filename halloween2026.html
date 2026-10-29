@@ -250,7 +250,7 @@
     <span class="term">&gt; quest unlocked: halloween_2026<span class="caret"></span></span>
     <h1>Halloween<span class="o">2026</span></h1>
     <p class="tag">What can the Side Quest Squad do this Halloween? Two nights. Pick your quest.</p>
-    <p class="how">Tap a card to <b>vote</b>. One pick per night.</p>
+    <p class="how">Tap to <b>vote</b>. Pick as many as you're down for.</p>
   </div>
 
   <section class="night" id="fri">
@@ -411,7 +411,13 @@
   var me = load();
   if (!me.id) { me.id = uuid(); }
   me.picks = me.picks || {};
+  // older single-pick format stored a string per night
+  ['fri', 'sat'].forEach(function (n) {
+    var v = me.picks[n];
+    me.picks[n] = Array.isArray(v) ? v : (v ? [v] : []);
+  });
   save();
+  function mine(night, opt) { return me.picks[night].indexOf(opt) !== -1; }
 
   function rpc(fn, body) {
     return fetch(SB_URL + '/rest/v1/rpc/' + fn, {
@@ -439,9 +445,9 @@
         var r = rows.filter(function (x) { return x.option === card.dataset.opt; })[0] || { votes: 0, names: [] };
         card.querySelector('.count b').textContent = r.votes;
         card.querySelector('.count small').textContent = r.votes === 1 ? 'vote' : 'votes';
-        card.querySelector('.bar').style.width = total ? (r.votes / total * 100) + '%' : '0';
+        card.querySelector('.bar').style.width = max ? (r.votes / max * 100) + '%' : '0';
         card.classList.toggle('lead', max > 0 && r.votes === max);
-        card.classList.toggle('mine', me.picks[night] === card.dataset.opt);
+        card.classList.toggle('mine', mine(night, card.dataset.opt));
         var names = card.querySelector('.names');
         if (!r.votes) { names.textContent = 'No votes yet'; }
         else {
@@ -449,7 +455,7 @@
           var more = r.names.length > 3 ? ' +' + (r.names.length - 3) : '';
           names.innerHTML = shown + more;
         }
-        card.setAttribute('aria-pressed', me.picks[night] === card.dataset.opt ? 'true' : 'false');
+        card.setAttribute('aria-pressed', mine(night, card.dataset.opt) ? 'true' : 'false');
       });
     });
     var you = document.getElementById('you');
@@ -469,11 +475,11 @@
   }
 
   function cast(night, opt) {
-    var prev = me.picks[night];
-    var clearing = prev === opt;
-    me.picks[night] = clearing ? null : opt;
+    var prev = me.picks[night].slice();
+    var clearing = mine(night, opt);
+    me.picks[night] = clearing ? prev.filter(function (o) { return o !== opt; }) : prev.concat(opt);
     render();
-    rpc('halloween2026_vote', { p_voter: me.id, p_night: night, p_option: clearing ? null : opt, p_name: me.name })
+    rpc('halloween2026_vote', { p_voter: me.id, p_night: night, p_option: opt, p_name: me.name, p_on: !clearing })
       .then(function () {
         save();
         toast(clearing ? 'Vote removed' : 'Vote cast 🎃');
@@ -515,10 +521,7 @@
     var p = pending; closeSheet();
     if (p) { cast(p.night, p.opt); }
     else if (renamed) {
-      // re-save existing picks under the new name
-      Promise.all(Object.keys(me.picks).filter(function (k) { return me.picks[k]; }).map(function (night) {
-        return rpc('halloween2026_vote', { p_voter: me.id, p_night: night, p_option: me.picks[night], p_name: me.name });
-      })).then(refresh).then(function () { toast('Name updated'); }).catch(function () { toast('Couldn’t update name', true); });
+      rpc('halloween2026_rename', { p_voter: me.id, p_name: me.name }).then(refresh).then(function () { toast('Name updated'); }).catch(function () { toast('Couldn’t update name', true); });
     } else { render(); }
   });
   document.getElementById('rename').addEventListener('click', function () { openSheet(null, true); });
